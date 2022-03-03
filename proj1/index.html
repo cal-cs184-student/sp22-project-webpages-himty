@@ -6,6 +6,9 @@
         <div style="width: 80%">
             <h1>Project 1</h1>
 
+            <h2>Overview</h2>
+            <p>I implemented rasterization of shapes and textures in this project. It was interesting to see the tradeoffs between different sampling algorithms. It was also interesting to realize that every single point on the image has to be calculated in a complex way in order to see what I see on the screen.</p>
+
     		<h2>Task 1</h2>
             <p>
                 Triangles are rasterized by looking at candidate points (the points in the rectangular bounding box of the triangle) and drawing it if it is within the bounds of the triangle. I check if the point is in the triangle by using 3 line tests. We are checking the inside of the triangle instead of the outside because the edges are chosen to be next point minus the current point and the points are ordered clockwise.
