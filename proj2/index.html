@@ -1,7 +1,252 @@
 <html>
-	<head>
-	</head>
+    <head>
+        <link rel="stylesheet" href="styles.css">
+    </head>
 	<body>
-		Project 2 here
+        <div style="width: 80%">
+    		<h1>Project 2</h1>
+
+            <h2>Section 1: Bezier Curves and Surfaces</h2>
+
+            <h3>Part 1: Bezier Curves with 1D de Casteljau Subdivision</h3>
+            <p>
+                de Casteljau's algorithm uses (n+1) control points and a variable t in [0, 1] to create a curve that is to the user's specifications. To draw the curve in 2D, we first fix t to some value, then take the lerp between adjacent control points using t. Recursively take the lerp of adjacent points until you have one left. The last point lies on the Bezier curve. Then, we do this procedure for many samples of t to generate a nice looking curve.
+            </p>
+
+            <p>For example, here is a 6-control point Bezier curve that I made. The green is the fully evaluated Belzier curve and the white connect the original control points:</p>
+            <div align="center">
+                <p><u>6-control point Bezier curve</u></p>
+                <img src="imgs/1_1/1.png" width="500px">
+            </div>
+
+            <p>The following pictures show the steps of evaluation for de Casteljau's algorithm at a certain t (approx t=0.5). As expected, there are 6-1=5 steps to get the final point per t. The blue is the evaluation at a time step</p>
+            <div align="center">
+                <img src="imgs/1_1/2_1.png" width="500px">
+            </div>
+            <div align="center">
+                <img src="imgs/1_1/2_2.png" width="500px">
+            </div>
+            <div align="center">
+                <img src="imgs/1_1/2_3.png" width="500px">
+            </div>
+            <div align="center">
+                <img src="imgs/1_1/2_4.png" width="500px">
+            </div>
+            <div align="center">
+                <img src="imgs/1_1/2_5.png" width="500px">
+            </div>
+
+            <p>If you shift t, the final point is on a different part of the resulting curve:</p>
+            <div align="center">
+                <img src="imgs/1_1/3_1.png" width="500px">
+            </div>
+
+            <p>If you shift the control points, the curve changes, as well</p>
+            <div align="center">
+                <img src="imgs/1_1/3_2.png" width="500px">
+            </div>
+
+            <h3>Part 2: Bezier Surfaces with Separable 1D de Casteljau</h3>
+
+            <p>
+                The main difference between specifying curves and surfaces is that surfaces are in 3D so we need a grid of points instead of a line of them. de Casteljau extends to Bezier surfaces if we say that the rows of our specification (a matrix, now) are Bezier curves that we calculated in the 2D case and we want to interpolate across them with de Casteljau after we found the final points on them. So, for a spot (u, v) on the Bezier surface, the u would specify the "vertical" axis and the v would specify the "horizontal" axis. Essentially, we run de Casteljau once per row then one more time to combine the rows.
+            </p>
+            <div align="center">
+                <p><u>Rendered bez/teapot.bez</u></p>
+                <img src="imgs/1_2/1.png" width="500px">
+            </div>
+
+            <h2>Section II: Triangle Meshes and Half-Edge Data Structure</h2>
+
+            <h3>Part 3: Area-Weighted Vertex Normals</h3>
+
+            <p>
+                I implemented area-weighted normals by first making code infrastructure to travel from the vertex of interest, go around an adjacent triangle (while saving the vertices of the triangle), then to to the next face adjacent to this vertex through the twin of the last edge. There is a simple trigonometric formula for the area of a triangle based on the positions of the vertices. And a vector normal to this triangle is the cross product of 2 vectors connecting vertices of this triangle. Thus, the area-weighted normal is the normalized sum of normal vector * area across all adjacent triangles.
+            </p>
+
+            <div align="center">
+                <p><u>Rendering bez/teapot.dae without area-weighted normals</u></p>
+                <img src="imgs/1_3/1.png" width="500px">
+            </div>
+
+            <div align="center">
+                <p><u>Rendering bez/teapot.dae with area-weighted normals (smoother)</u></p>
+                <img src="imgs/1_3/2.png" width="500px">
+            </div>
+
+            <h3>Part 4: Edge Flip</h3>
+
+            <p>
+                I implemented edge flip by first drawing labeled diagrams for the before and after of a general edge flip operation. The diagram below can be used WLOG because it can be rotated and skewed to generalize.
+            </p>
+
+            <div align="center">
+                <p><u>Labeled diagram for edge flipping</u></p>
+                <img src="imgs/1_4/prep.png" width="200px">
+            </div>
+
+            <p>
+                I then saved all the relevant halfedges, edges, faces, and vertices as local variables with the appropriate name. The next step was to assign all attributes of these variables to their new values, as designated in the second diagram. I had to be very careful.
+            </p>
+
+            <div align="center">
+                <p><u>Before flips</u></p>
+                <img src="imgs/1_4/1.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>After flips</u></p>
+                <img src="imgs/1_4/2.png" width="500px">
+            </div>
+
+            <p>
+                My debugging journey was quite extensive and memorable. At first, I didn't have the -- connecting e0 on the second diagram, so after all the work of assigning attributes, I actually reconnected the vertices the exact way they came! There were also times when I mixed up h0's top/left halfedge with its bottom/right halfedge. Fun stuff
+            </p>
+
+            <h3>Part 5: Edge Split</h3>
+
+            <p>
+                I implemented the edge split operation very similarly to the edge flip operation. I first drew out the before and after layout of a simple yet configuration.
+            </p>
+
+            <div align="center">
+                <p><u>Labeled diagram for edge splitting</u></p>
+                <img src="imgs/1_5/prep.png" width="200px">
+            </div>
+
+            <p>
+                Then, I copied all the existing edges, vertices, halfedges, and faces to local variables. In this task, I added a section of code to create the new edges, halfedges, and vertex m (m is the midpoint of 2 existing vertices in position) with empty initializations. Then I assigned all the attributes according to my diagram. Since it is very hard to experimentaly debug this function due to its large number of parts, I decided to first debug through theory and concepts--checking and double checking my work as I wrote each section of code.
+            </p>
+
+            <div align="center">
+                <p><u>Before splits</u></p>
+                <img src="imgs/1_5/1.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>After splits</u></p>
+                <img src="imgs/1_5/2.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>After splits and flips</u></p>
+                <img src="imgs/1_5/3.png" width="500px">
+            </div>
+
+            <p>
+                Surprisingly, I did not have much of a debugging journey when implementing this task. The only problem was that I forgot to assign the position of the midpoint m, but I found that by noticing that the split operation made the correct x-shaped faces, but only had a vertex sticking deep into the teapot. Other than that, implementation was pretty smooth, probably since I invested time into debugging through concepts.
+            </p>
+
+            <h3>Part 6: Loop subdivision for mesh upsampling</h3>
+
+            <p>
+                I implemented loop subdivision by first calculating the new positions for the original verticies (and saving them in an attribute of the vertex) and new positions for the new vertices after splits (and saving them in the edges that will be split). These calcuations used the weightings based on neighbors, as defined in the design doc. Then, I split every edge that had not been split yet; all new edges are marked as isNew=true in the split function. I had to also track isVeryNew in the split fuction, which is a new attribute that I added that is true if the edge was newly drawn and false if it is one of the two edges that lie on the original edge (that was split). Then, I flip every isVeryNew=true edge in the mesh that connects a new and old vertex. After that, old vertices are assigned positions that were stored in their attributes, and new vertices are assigned positions that were stored in any adjacent edge, pointed to by their halfedge. One major change to the flip and split functions were that I only reassigned a vertex's halfedge if it was originally pointing to a flipped or split edge; I was careful to not touch more than I needed to because that tended to lose track of the newPosition information in adjacent edges.
+            </p>
+
+            <p>Here are some highlights of example meshes and how they behave under my loop subdivision implementation</p>
+
+            <div align="center">
+                <div class="image">
+                    <p><u>Original dae/cow.dae over iterations of loop subdivision. Smooth.</u></p>
+                    <img src="imgs/1_6/cow_1.png" width="200px"/>
+                </div>
+                <div class="image">
+                    <img src="imgs/1_6/cow_2.png" width="200px"/>
+                </div>
+                <div class="image">
+                    <img src="imgs/1_6/cow_3.png" width="200px"/>
+                </div>
+            </div>
+
+            <div align="center">
+                <div class="image">
+                    <p><u>Original dae/teapot.dae over iterations of loop subdivision. Smooth even at thin bends.</u></p>
+                    <img src="imgs/1_6/teapot_1.png" width="200px"/>
+                </div>
+                <div class="image">
+                    <img src="imgs/1_6/teapot_2.png" width="200px"/>
+                </div>
+                <div class="image">
+                    <img src="imgs/1_6/teapot_3.png" width="200px"/>
+                </div>
+            </div>
+
+            <div align="center">
+                <div class="image">
+                    <p><u>Original dae/beetle.dae over iterations of loop subdivision. Has weird effects at boundaries, but that's extra credit. Smooth</u></p>
+                    <img src="imgs/1_6/beetle_1.png" width="200px"/>
+                </div>
+                <div class="image">
+                    <img src="imgs/1_6/beetle_2.png" width="200px"/>
+                </div>
+                <div class="image">
+                    <img src="imgs/1_6/beetle_3.png" width="200px"/>
+                </div>
+            </div>
+
+            <div align="center">
+                <div class="image">
+                    <p><u>Original dae/cube.dae over iterations of loop subdivision. Loses its edges!</u></p>
+                    <img src="imgs/1_6/2_1.png" width="200px"/>
+                </div>
+                <div class="image">
+                    <img src="imgs/1_6/2_2.png" width="200px"/>
+                </div>
+                <div class="image">
+                    <img src="imgs/1_6/2_3.png" width="200px"/>
+                </div>
+                <div class="image">
+                    <img src="imgs/1_6/2_4.png" width="200px"/>
+                </div>
+                <div class="image">
+                    <img src="imgs/1_6/2_5.png" width="200px"/>
+                </div>
+                <div class="image">
+                    <img src="imgs/1_6/2_6.png" width="200px"/>
+                </div>
+            </div>
+
+            <p>One thing about the original dae/cube.dae mesh is that it loses its sharp edges throughout loop subdivision and actually turns very spherical. After experimenting with flips and splits, I realized that making the mesh structure more complex on each face tends to preserve the flatness and sharpness of faces and edges.</p>
+
+            <div align="center">
+                <div class="image">
+                    <p><u>Preprocessed dae/cube.dae for sharp edges over iterations of loop subdivision.</u></p>
+                    <img src="imgs/1_6/sharp_cube_1.png" width="200px"/>
+                </div>
+                <div class="image">
+                    <img src="imgs/1_6/sharp_cube_2.png" width="200px"/>
+                </div>
+                <div class="image">
+                    <img src="imgs/1_6/sharp_cube_3.png" width="200px"/>
+                </div>
+                <div class="image">
+                    <img src="imgs/1_6/sharp_cube_4.png" width="200px"/>
+                </div>
+            </div>
+
+            <p>Also, I noticed that dae/cude.dae is lopsided after repeated subdivisions, based on the original asymmetry of the triangles in the mesh. One fix was to split all the face edges to make the original triangles symmetric about the middle of the cube. Now it subdivides symmetrically</p>
+
+            <div align="center">
+                <div class="image">
+                    <p><u>Preprocessed dae/cube.dae that over iterations of loop subdivision</u></p>
+                    <img src="imgs/1_6/2__1.png" width="200px"/>
+                </div>
+                <div class="image">
+                    <img src="imgs/1_6/2__2.png" width="200px"/>
+                </div>
+                <div class="image">
+                    <img src="imgs/1_6/2__3.png" width="200px"/>
+                </div>
+                <div class="image">
+                    <img src="imgs/1_6/2__4.png" width="200px"/>
+                </div>
+                <div class="image">
+                    <img src="imgs/1_6/2__5.png" width="200px"/>
+                </div>
+            </div>
+
+
+
+
+
+        </div>
 	</body>
 </html>
+
