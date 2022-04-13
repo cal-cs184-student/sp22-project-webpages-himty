@@ -1,7 +1,187 @@
 <html>
-	<head>
-	</head>
+    <head>
+        <link rel="stylesheet" href="styles.css">
+    </head>
 	<body>
-		Project 4 here
+        <div style="width: 80%">
+    		<h1>Project 4</h1>
+
+            <h2>Overview</h2>
+            <p>
+                In this project, I learned a lot about the simulation of cloth and how to construct fast shader programs. It's interesting how these short rules can make very complicated behavior when they are computed over all points and constraints in a scene. The main problems I encountered when implementing this project was in pointer manipulation, specifically knowing when it is possible to use a local variable and when it will be deleted by the garbage collector.
+            </p>
+
+            <h2>Part 1: Masses and springs</h2>
+
+            After building the graph of point masses and springs, we get this plane when we visualize pinned2.json:
+
+            <div align="center">
+                <p><u>Screenie 1</u></p>
+                <img src="imgs/1/1/screenie1.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>Screenie 2</u></p>
+                <img src="imgs/1/1/screenie2.png" width="500px">
+            </div>
+
+            <br>
+
+            <div align="center">
+                <p><u>Without shearing constraints (horizontal/vertical constraints)</u></p>
+                <img src="imgs/1/1/noshearing.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>Only shearing constraints (diagonal constraints)</u></p>
+                <img src="imgs/1/1/onlyshearing.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>All constraints (diagonal and straight)</u></p>
+                <img src="imgs/1/1/allconstraints.png" width="500px">
+            </div>
+
+            Note to self: don't append local copies of variables to a persistent list--it will get garbage collected.
+
+
+            <h2>Part 2: Simulation via numerical integration</h2>
+
+            After implementing the gravity, spring force, verlet integration (for position updates), varying certain parameters of the simulation led to various cloth behaviors.
+
+            <div align="center">
+                <p><u>Low spring constant ks (droops more because the points aren't pulled together tightly)</u></p>
+                <img src="imgs/2/lowks.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>High spring constant ks (droops less)</u></p>
+                <img src="imgs/2/highks.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>Low density (droops less because gravity is overwhelmed by spring forces)</u></p>
+                <img src="imgs/2/lowdensity.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>High density (droops more because gravity is more important)</u></p>
+                <img src="imgs/2/highdensity.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>Low damping (jiggles around a lot)</u></p>
+                <img src="imgs/2/lowdamping.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>High damping (falls very slowly)</u></p>
+                <img src="imgs/2/highdamping.png" width="500px">
+            </div>
+
+
+            <h2>Part 3: Handling collisions with other objects</h2>
+
+            <p>The cloth can now collide with spheres and planes! Here is the cloth on the sphere at varying spring constants. A higher spring constant makes the cloth less malleable to the shape of the sphere.</p>
+
+            <div align="center">
+                <p><u>ks = 500, sphere (wrapped around the sphere)</u></p>
+                <img src="imgs/3/500ks.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>ks = 5000, sphere</u></p>
+                <img src="imgs/3/5000ks.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>ks = 50000, sphere (very much dangling off the edge)</u></p>
+                <img src="imgs/3/50000ks.png" width="500px">
+            </div>
+
+            <p>And here is my cloth lying peacefully on the plane</p>
+            <div align="center">
+                <p><u>plane</u></p>
+                <img src="imgs/3/plane.png" width="500px">
+            </div>
+
+
+            <h2>Part 4: Handling self-collisions</h2>
+
+            <p>In this part, I fixed a problem where the cloth would clip through itself. This is how the cloth falls and folds on itself:</p>
+
+            <div align="center">
+                <p><u>Beginning to fall</u></p>
+                <img src="imgs/4/fall1.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>Middle of fall</u></p>
+                <img src="imgs/4/fall2.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>In a restful state</u></p>
+                <img src="imgs/4/fall3.png" width="500px">
+            </div>
+
+            <p>This behavior is changed by the cloth's density and spring constant</p>
+            <div align="center">
+                <p><u>Low density=5 (few wrinkles)</u></p>
+                <img src="imgs/4/5density.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>High density=25 (very sharp wrinkles being pulled down because gravity >> spring force)</u></p>
+                <img src="imgs/4/25density.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>Low spring constant ks=500 (many wrinkles)</u></p>
+                <img src="imgs/4/500ks.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>High spring constant ks=50000 (almost parallel lines going down because gravity / randomness in initial position is negligible)</u></p>
+                <img src="imgs/4/50000ks.png" width="500px">
+            </div>
+
+
+
+            <h2>Part 5: Shaders</h2>
+
+            <p>A shader program is a fast piece of isolated code that handles a section of the graphics pipeline. For example, a vertex shader could use arguments like the vertex normal, displacement map textures, etc to determine the placement of this vertex, only. Also, a fragment shader could use similar arguments, color of the object at that point, and environment information to determine the outgoing color at that pixel. These are small programs that can be optimized to run very quickly.</p>
+
+            <p>Blinn-Phong shading approximates the realistic lighting for a scene by adding together ambient, diffuse, and specular lighting (with some linear weighting). The ambient component is a constant brightness, regardless of incoming light. The diffuse component comes from the incoming light but does not depend on viewing angle. The specular lighting is highly dependent on viewing angle. Here are some screenshots:</p>
+
+            <div align="center">
+                <p><u>Only ambient shading (very little ambient light)</u></p>
+                <img src="imgs/5/ambient_phong.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>Only diffuse shading (the top is brighter because it's closer to the light)</u></p>
+                <img src="imgs/5/diffuse_phong.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>Full Blinn-Phong (specular light highlights!)</u></p>
+                <img src="imgs/5/all_phong.png" width="500px">
+            </div>
+
+            <p>Also, I mapped a Kirby TM face to the cloth</p>
+            <div align="center">
+                <p><u>Kirby TM Texture</u></p>
+                <img src="imgs/5/kirby_texture.png" width="500px">
+            </div>
+
+            <p>Other shaders I implemented were bump (no displacement of vertices) and displacement shaders. If the sphere's mesh is less coarse, I tend to see slightly more wrinkles in the texture, though the difference is not that big.</p>
+            <div align="center">
+                <p><u>Bump mapping + sphere coarseness 16</u></p>
+                <img src="imgs/5/bump16.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>Bump mapping + sphere coarseness 128</u></p>
+                <img src="imgs/5/bump128.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>Displacement mapping + sphere coarseness 16</u></p>
+                <img src="imgs/5/displace16.png" width="500px">
+            </div>
+            <div align="center">
+                <p><u>Displacement mapping + sphere coarseness 128</u></p>
+                <img src="imgs/5/displace128.png" width="500px">
+            </div>
+
+            <p>I also made a mirror shader! Hello, world!</p>
+            <div align="center">
+                <p><u>Mirror</u></p>
+                <img src="imgs/5/mirror.png" width="500px">
+            </div>
+        </div>
 	</body>
 </html>
+
